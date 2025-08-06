@@ -840,28 +840,6 @@
             });
         }
 
-            // Process construction roads (C1, C2, C3, etc.)
-            const constructionRoads = container.querySelectorAll('[id^="C"], path[id^="C"]');
-            constructionRoads.forEach(road => {
-                road.removeAttribute('style');
-                road.setAttribute('fill', 'none');
-                road.classList.add('road-segment', 'construction');
-            });
-
-            // Process location circles (S1, S2, S3, etc.)
-            const locations = container.querySelectorAll('[id^="S"], circle[id^="S"]');
-            locations.forEach(location => {
-                location.classList.add('location-circle');
-                
-                const locationId = location.getAttribute('id');
-                if (!locationData[locationId]) {
-                    locationData[locationId] = {
-                        name: ''
-                    };
-                }
-            });
-        }
-
         function updateMapWithData() {
             ['mapContainer', 'updateMapContainer'].forEach(containerId => {
                 const container = document.getElementById(containerId);
@@ -1115,7 +1093,7 @@
            closeRoadUpdateModal();
            closeLocationUpdateModal();
        }
-       a
+       
        async function saveChanges() {
             const saveBtn = document.getElementById('saveBtn');
             const saveText = document.getElementById('saveText');
