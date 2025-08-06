@@ -726,12 +726,14 @@
                 
                 console.log('Payload:', payload);
         
-                const response = await fetch(ENV.API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
+                // Use GET request with URL parameters instead of POST
+                const params = new URLSearchParams();
+                params.append('action', 'saveData');
+                params.append('data', JSON.stringify(payload));
+        
+                const response = await fetch(`${ENV.API_ENDPOINT}?${params.toString()}`, {
+                    method: 'GET',  // Changed from POST to GET
+                    mode: 'cors'
                 });
         
                 console.log('Response status:', response.status);
