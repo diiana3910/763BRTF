@@ -780,7 +780,33 @@
                         status: 'open'
                     };
                 }
+                
+                // IMPORTANT: Apply the visual class immediately
+                road.classList.remove('open', 'blocked');
+                road.classList.add(roadData[roadId].status);
             });
+        
+            // Process construction roads (C1, C2, C3, etc.)
+            const constructionRoads = container.querySelectorAll('[id^="C"], path[id^="C"]');
+            constructionRoads.forEach(road => {
+                road.removeAttribute('style');
+                road.setAttribute('fill', 'none');
+                road.classList.add('road-segment', 'construction');
+            });
+        
+            // Process location circles (S1, S2, S3, etc.)
+            const locations = container.querySelectorAll('[id^="S"], circle[id^="S"]');
+            locations.forEach(location => {
+                location.classList.add('location-circle');
+                
+                const locationId = location.getAttribute('id');
+                if (!locationData[locationId]) {
+                    locationData[locationId] = {
+                        name: ''
+                    };
+                }
+            });
+        }
 
             // Process construction roads (C1, C2, C3, etc.)
             const constructionRoads = container.querySelectorAll('[id^="C"], path[id^="C"]');
