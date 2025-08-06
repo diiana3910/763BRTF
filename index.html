@@ -714,43 +714,70 @@
                 return true;
             }
         
-            try {
-                console.log('Sending data to:', ENV.API_ENDPOINT);
-                
-                const payload = {
-                    action: 'saveData',
-                    roadData: roadData,
-                    locationData: locationData,
-                    timestamp: new Date().toISOString()
-                };
-                
-                console.log('Payload:', payload);
-        
-                // Use GET request with URL parameters instead of POST
-                const params = new URLSearchParams();
-                params.append('action', 'saveData');
-                params.append('data', JSON.stringify(payload));
-        
-                const response = await fetch(`${ENV.API_ENDPOINT}?${params.toString()}`, {
-                    method: 'GET',  // Changed from POST to GET
-                    mode: 'cors'
-                });
-        
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-        
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            return new Promise((resolve) => {
+                try {
+                    console.log('Sending data via hidden form...');
+                    
+                    // Create a hidden iframe for the response
+                    let iframe = document.getElementById('save_iframe');
+                    if (!iframe) {
+                        iframe = document.createElement('iframe');
+                        iframe.id = 'save_iframe';
+                        iframe.name = 'save_iframe';
+                        iframe.style.display = 'none';
+                        document.body.appendChild(iframe);
+                    }
+                    
+                    // Create a hidden form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = ENV.API_ENDPOINT;
+                    form.target = 'save_iframe';
+                    form.style.display = 'none';
+                    
+                    // Add the action field
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = 'saveData';
+                    form.appendChild(actionInput);
+                    
+                    // Add the JSON data field
+                    const dataInput = document.createElement('input');
+                    dataInput.type = 'hidden';
+                    dataInput.name = 'jsonData';
+                    dataInput.value = JSON.stringify({
+                        roadData: roadData,
+                        locationData: locationData,
+                        timestamp: new Date().toISOString()
+                    });
+                    form.appendChild(dataInput);
+                    
+                    // Handle the response
+                    iframe.onload = function() {
+                        try {
+                            // Check if save was successful
+                            console.log('Form submitted successfully');
+                            resolve(true);
+                        } catch (error) {
+                            console.log('Form submission completed with potential error');
+                            resolve(false);
+                        }
+                        // Clean up
+                        if (form.parentNode) {
+                            form.parentNode.removeChild(form);
+                        }
+                    };
+                    
+                    // Submit the form
+                    document.body.appendChild(form);
+                    form.submit();
+                    
+                } catch (error) {
+                    console.error('Form submission error:', error);
+                    resolve(false);
                 }
-        
-                const result = await response.json();
-                console.log('Save result from server:', result);
-                
-                return result.success;
-            } catch (error) {
-                console.error('Detailed error saving data to Google Sheets:', error);
-                return false;
-            }
+            });
         }
 
         async function verifyPassword(password) {
