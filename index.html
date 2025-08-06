@@ -618,21 +618,38 @@
             if (!ENV.initialized) {
                 throw new Error('Environment not initialized');
             }
-
+        
             try {
-                // Load map from Google Drive via secure API
-                await loadMapFromSecureSource();
+                showLoadingMessage('Loading map...');
                 
-                // Load data from Google Sheets
-                await loadDataFromSheets();
-                
+                // Load map and data in parallel for better performance
+                const [mapResult, dataResult] = await Promise.allSettled([
+                    loadMapFromSecureSource(),
+                    loadDataFromSheets()
+                ]);
+        
+                if (mapResult.status === 'rejected') {
+                    console.warn('Map loading failed:', mapResult.reason);
+                }
+        
+                if (dataResult.status === 'rejected') {
+                    console.warn('Data loading failed:', dataResult.reason);
+                }
+        
                 // Update the map with loaded data
                 updateMapWithData();
                 
                 // Set last updated time
                 updateLastUpdatedTime();
                 
-                showSuccess('✅ Map and data loaded successfully');
+                // Remove loading message
+                const mapContainer = document.getElementById('mapContainer');
+                const loadingDiv = mapContainer.querySelector('.map-placeholder');
+                if (loadingDiv) {
+                    loadingDiv.remove();
+                }
+                
+                console.log('✅ Initialization complete');
                 
             } catch (error) {
                 console.error('Error loading initial data:', error);
@@ -696,25 +713,40 @@
                 console.log('API not configured, data saved locally only');
                 return true;
             }
-
+        
             try {
+                console.log('Sending data to:', ENV.API_ENDPOINT);
+                
+                const payload = {
+                    action: 'saveData',
+                    roadData: roadData,
+                    locationData: locationData,
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Payload:', payload);
+        
                 const response = await fetch(ENV.API_ENDPOINT, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        action: 'saveData',
-                        roadData: roadData,
-                        locationData: locationData,
-                        timestamp: new Date().toISOString()
-                    })
+                    body: JSON.stringify(payload)
                 });
-
+        
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+        
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+        
                 const result = await response.json();
+                console.log('Save result from server:', result);
+                
                 return result.success;
             } catch (error) {
-                console.error('Error saving data to Google Sheets:', error);
+                console.error('Detailed error saving data to Google Sheets:', error);
                 return false;
             }
         }
@@ -1083,42 +1115,48 @@
            closeRoadUpdateModal();
            closeLocationUpdateModal();
        }
-
+       a
        async function saveChanges() {
-           const saveBtn = document.getElementById('saveBtn');
-           const saveText = document.getElementById('saveText');
-           
-           saveBtn.disabled = true;
-           saveText.innerHTML = '<div class="loading"></div>Saving to Google Sheets...';
-
-           try {
-               const success = await saveDataToSheets();
-               
-               if (success) {
-                   updateLastUpdatedTime();
-                   await loadMapFromSecureSource();
-                   updateMapWithData();
-                   saveText.textContent = '✅ Changes Saved Successfully!';
-                   
-                   setTimeout(() => {
-                       saveText.textContent = 'Save Changes';
-                   }, 2000);
-               } else {
-                   saveText.textContent = '❌ Error saving changes';
-                   setTimeout(() => {
-                       saveText.textContent = 'Save Changes';
-                   }, 3000);
-               }
-           } catch (error) {
-               console.error('Save error:', error);
-               saveText.textContent = '❌ Error saving changes';
-               setTimeout(() => {
-                   saveText.textContent = 'Save Changes';
-               }, 3000);
-           }
-
-           saveBtn.disabled = false;
-       }
+            const saveBtn = document.getElementById('saveBtn');
+            const saveText = document.getElementById('saveText');
+            
+            saveBtn.disabled = true;
+            saveText.innerHTML = '<div class="loading"></div>Saving to Google Sheets...';
+        
+            try {
+                console.log('Starting save process...');
+                console.log('Road data to save:', roadData);
+                console.log('Location data to save:', locationData);
+                console.log('API endpoint:', ENV.API_ENDPOINT);
+        
+                const success = await saveDataToSheets();
+                console.log('Save result:', success);
+                
+                if (success) {
+                    updateLastUpdatedTime();
+                    await loadMapFromSecureSource();
+                    updateMapWithData();
+                    saveText.textContent = '✅ Changes Saved Successfully!';
+                    
+                    setTimeout(() => {
+                        saveText.textContent = 'Save Changes';
+                    }, 2000);
+                } else {
+                    saveText.textContent = '❌ Error saving changes - Check console';
+                    setTimeout(() => {
+                        saveText.textContent = 'Save Changes';
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Detailed save error:', error);
+                saveText.textContent = '❌ Connection error - Check console';
+                setTimeout(() => {
+                    saveText.textContent = 'Save Changes';
+                }, 3000);
+            }
+        
+            saveBtn.disabled = false;
+        }
 
        function updateLastUpdatedTime() {
            document.getElementById('lastUpdated').textContent = getCurrentTime();
