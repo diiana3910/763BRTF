@@ -937,8 +937,8 @@
             document.getElementById('locationName').textContent = data.name || '-';
             
             const locationRect = location.getBoundingClientRect();
-            const popupX = segmentRect.left + (segmentRect.width / 2) + 30;
-            const popupY = segmentRect.top - 40;
+            const popupX = locationRect.left + (locationRect.width / 2) + 30;
+            const popupY = locationRect.top - 40;
             
             popup.style.left = popupX + 'px';
             popup.style.top = popupY + 'px';
