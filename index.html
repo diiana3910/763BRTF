@@ -1002,15 +1002,14 @@
                 roadData[segmentId] = data;
                 
                 // Update visual appearance in both containers
-                const updateSegment = currentSegment;
-                const mainSegment = document.querySelector(`#mapContainer [id="${segmentId}"]`);
-                
-                [updateSegment, mainSegment].forEach(seg => {
-                   if (seg) {
-                       seg.classList.remove('open', 'blocked');
-                       seg.classList.add(data.status);
-                   }
-               });
+                ['mapContainer', 'updateMapContainer'].forEach(containerId => {
+                    const container = document.getElementById(containerId);
+                    const segment = container.querySelector(`[id="${segmentId}"]`);
+                    if (segment) {
+                        segment.classList.remove('open', 'blocked');
+                        segment.classList.add(data.status);
+                    }
+                });
 
                saveBtn.disabled = false;
                saveBtn.innerHTML = 'Save';
