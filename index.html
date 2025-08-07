@@ -433,7 +433,7 @@
         <button class="back-btn" onclick="goBack()">← Back</button>
         
         <div class="header">
-            <h1>763 BRTF - Update Status</h1>
+            <h1>763 BRTF</h1>
             <div class="status-line">Click on any road segment or location to update its information</div>
         </div>
 
@@ -699,12 +699,12 @@
                 if (data.success) {
                     roadData = data.roadData || {};
                     locationData = data.locationData || {};
-                    console.log('✅ Data loaded from Google Sheets');
+                    console.log('Data loaded from database');
                 } else {
                     console.warn('Failed to load data:', data.error);
                 }
             } catch (error) {
-                console.error('Error loading data from Google Sheets:', error);
+                console.error('Error loading data from database:', error);
             }
         }
 
@@ -1128,7 +1128,7 @@
             const saveText = document.getElementById('saveText');
             
             saveBtn.disabled = true;
-            saveText.innerHTML = '<div class="loading"></div>Saving to Google Sheets...';
+            saveText.innerHTML = '<div class="loading"></div>Saving to Database...';
         
             try {
                 console.log('Starting save process...');
@@ -1143,13 +1143,13 @@
                     updateLastUpdatedTime();
                     await loadMapFromSecureSource();
                     updateMapWithData();
-                    saveText.textContent = '✅ Changes Saved Successfully!';
+                    saveText.textContent = 'Changes Saved Successfully';
                     
                     setTimeout(() => {
                         saveText.textContent = 'Save Changes';
                     }, 2000);
                 } else {
-                    saveText.textContent = '❌ Error saving changes - Check console';
+                    saveText.textContent = 'Error saving changes';
                     setTimeout(() => {
                         saveText.textContent = 'Save Changes';
                     }, 3000);
